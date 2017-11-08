@@ -29,9 +29,10 @@ Ranking returns a list of indices which would sort the list, without actually to
 
 ### Performance
 
-Some quick comparisons of the CUDA and CPU:
+Some quick comparisons of CUDA and CPU:
 
 N       | i5-3317U  | GT 630M
+---     |   ---     | ---
 4096    | 1ms       | 55ms
 8192    | 2ms       | 44ms
 16384   | 5ms       | 43ms
