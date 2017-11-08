@@ -23,9 +23,14 @@ BitonicSort::BitonicSortCUDA(mem_block, N);
 
 The sorting algorithm takes an array of floats, doubles or unsigned integers and sorts them into a descending list. This function is made of three specialist kernels for each data type, allowing the CUDA compiler to make the most efficient targets for your system.
 
+Use `BitonicSortCUDA` to perform the sorting function. This will perform the copy from host to device and back. `BitonicSortCUDAZero` instead assumes the data is already on device memory, so will not do the copies.
+
 ## Ranking
 
 Ranking returns a list of indices which would sort the list, without actually touching the list. This is useful if you then need to use one list to sort another!
+
+Use `BitonicSortRankCUDA` to perform the ranking function. This will perform the copy from host to device and back. `BitonicSortRankCUDAZero` instead assumes the data is already on device memory, so will not do the copies.
+
 
 ### Performance
 

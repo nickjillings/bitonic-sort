@@ -5,8 +5,8 @@
 #include <iostream>
 #include <fstream>
 
-#define TYPE 2
-#define PROF 1
+#define TYPE 1
+#define PROF 0
 
 #ifdef _DEBUG
 int main()
@@ -102,12 +102,31 @@ int main()
 
 		// Add vectors in parallel.
 		auto t1 = std::chrono::high_resolution_clock::now();
-		cudaError_t cudaStatus = BitonicSort::BitonicSortCUDA(mem, N);
 		auto t2 = std::chrono::high_resolution_clock::now();
-		if (cudaStatus != cudaSuccess) {
-			fprintf(stderr, "addWithCuda failed!");
-			return 1;
+		unsigned int count = 0;
+		cudaError_t cudaStatus;
+		while(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() < 5000)
+		{
+			cudaStatus = BitonicSort::BitonicSortCUDA(mem, N);
+			t2 = std::chrono::high_resolution_clock::now();
+			if (cudaStatus != cudaSuccess) {
+				fprintf(stderr, "addWithCuda failed!");
+				return 1;
+			}
+			count++;
 		}
+		double tGPU = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()/(double)count;
+
+		t1 = std::chrono::high_resolution_clock::now();
+		t2 = std::chrono::high_resolution_clock::now();
+		count = 0;
+		while (std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() < 5000)
+		{
+			BitonicSort::BitonicSort(mem, N);
+			t2 = std::chrono::high_resolution_clock::now();
+			count++;
+		}
+		double tCPU = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() / (double)count;
 
 		// cudaDeviceReset must be called before exiting in order for profiling and
 		// tracing tools such as Nsight and Visual Profiler to show complete traces.
@@ -117,16 +136,13 @@ int main()
 			return 1;
 		}
 		std::cout << "GPU :"
-			<< std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+			<< tGPU
 			<< "ms";
-		myfile << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << ",";
-		t1 = std::chrono::high_resolution_clock::now();
-		BitonicSort::BitonicSort(mem2, N);
-		t2 = std::chrono::high_resolution_clock::now();
+		myfile << tGPU << ",";
 		std::cout << "CPU : "
-			<< std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()
+			<< tCPU
 			<< " ms\n";
-		myfile << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << "\n";
+		myfile << tCPU << "\n";
 		delete[] mem;
 	}
 	myfile.close();

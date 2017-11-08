@@ -931,3 +931,275 @@ Error:
 
 	return cudaStatus;
 }
+
+
+
+cudaError_t BitonicSort::BitonicSortCUDAZero(unsigned int* dev_mem, int N)
+{
+	cudaError_t cudaStatus;
+
+	// Launch a kernel on the GPU with one thread for each element.
+	int numBlocks = log2(N);
+
+	bitonicSortKernel128_uint32 << <N / 256, 128 >> >(dev_mem);
+	for (int b = 9; b <= numBlocks; b++)
+	{
+		int d = 1 << b;
+		bitonicSortKernelXBlock1_uint32 << <N / 512, 256 >> >(dev_mem, b);
+		d = d >> 1;
+		while (d >= 2)
+		{
+			bitonicSortKernelXBlock2_uint32 << <N / 512, 256 >> >(dev_mem, b, d);
+			d = d >> 1;
+		}
+	}
+
+	//bitonicSortKernelTestDbg <<< N / 256, 128 >>> (dev_mem);
+
+	// Check for any errors launching the kernel
+	cudaStatus = cudaGetLastError();
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "bitonicSortKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
+		goto Error;
+	}
+Error:
+
+	return cudaStatus;
+}
+
+cudaError_t BitonicSort::BitonicSortCUDAZero(float* dev_mem, int N)
+{
+	cudaError_t cudaStatus;
+
+	// Launch a kernel on the GPU with one thread for each element.
+	int numBlocks = log2(N);
+
+	bitonicSortKernel128_fp32 << <N / 256, 128 >> >(dev_mem);
+	for (int b = 9; b <= numBlocks; b++)
+	{
+		int d = 1 << b;
+		bitonicSortKernelXBlock1_fp32 << <N / 512, 256 >> >(dev_mem, b);
+		d = d >> 1;
+		while (d >= 2)
+		{
+			bitonicSortKernelXBlock2_fp32 << <N / 512, 256 >> >(dev_mem, b, d);
+			d = d >> 1;
+		}
+	}
+
+	//bitonicSortKernelTestDbg <<< N / 256, 128 >>> (dev_mem);
+
+	// Check for any errors launching the kernel
+	cudaStatus = cudaGetLastError();
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "bitonicSortKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
+		goto Error;
+	}
+Error:
+
+	return cudaStatus;
+}
+
+cudaError_t BitonicSort::BitonicSortCUDAZero(double* dev_mem, int N)
+{
+	cudaError_t cudaStatus;
+
+	// Launch a kernel on the GPU with one thread for each element.
+	int numBlocks = log2(N);
+
+	bitonicSortKernel128_fp64 << <N / 256, 128 >> >(dev_mem);
+	for (int b = 9; b <= numBlocks; b++)
+	{
+		int d = 1 << b;
+		bitonicSortKernelXBlock1_fp64 << <N / 512, 256 >> >(dev_mem, b);
+		d = d >> 1;
+		while (d >= 2)
+		{
+			bitonicSortKernelXBlock2_fp64 << <N / 512, 256 >> >(dev_mem, b, d);
+			d = d >> 1;
+		}
+	}
+
+	//bitonicSortKernelTestDbg <<< N / 256, 128 >>> (dev_mem);
+
+	// Check for any errors launching the kernel
+	cudaStatus = cudaGetLastError();
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "bitonicSortKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
+		goto Error;
+	}
+Error:
+
+	return cudaStatus;
+}
+
+cudaError_t BitonicSort::BitonicSortCUDARankZero(unsigned int* dev_mem, unsigned int* dev_index, int N)
+{
+	cudaError_t cudaStatus;
+	unsigned int* dev_mem_copy;
+
+	// Allocate GPU buffers for vector
+	cudaStatus = cudaMalloc((void**)&dev_mem_copy, N * sizeof(unsigned int));
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "cudaMalloc failed!");
+		goto Error;
+	}
+
+	// Copy input vectors from device memory to GPU buffers.
+	cudaStatus = cudaMemcpy(dev_mem_copy, dev_mem, N * sizeof(unsigned int), cudaMemcpyDeviceToDevice);
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "cudaMemcpy failed!");
+		goto Error;
+	}
+
+	// Launch a kernel on the GPU with one thread for each element.
+	int numBlocks = log2(N);
+
+	bitonicSortRankKernel128_uint32 << <N / 256, 128 >> >(dev_mem_copy, dev_index);
+	for (int b = 9; b <= numBlocks; b++)
+	{
+		int d = 1 << b;
+		bitonicSortRankKernelXBlock1_uint32 << <N / 512, 256 >> >(dev_mem_copy, dev_index, b);
+		d = d >> 1;
+		while (d >= 2)
+		{
+			bitonicSortRankKernelXBlock2_uint32 << <N / 512, 256 >> >(dev_mem_copy, dev_index, b, d);
+			d = d >> 1;
+		}
+	}
+
+	//bitonicSortKernelTestDbg <<< N / 256, 128 >>> (dev_mem);
+
+	// Check for any errors launching the kernel
+	cudaStatus = cudaGetLastError();
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "bitonicSortKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
+		goto Error;
+	}
+
+	// cudaDeviceSynchronize waits for the kernel to finish, and returns
+	// any errors encountered during the launch.
+	cudaStatus = cudaDeviceSynchronize();
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching addKernel!\n", cudaStatus);
+		goto Error;
+	}
+Error:
+	cudaFree(dev_mem_copy);
+
+	return cudaStatus;
+}
+
+cudaError_t BitonicSort::BitonicSortCUDARankZero(float* dev_mem, unsigned int* dev_index, int N)
+{
+	cudaError_t cudaStatus;
+	float* dev_mem_copy;
+
+	// Allocate GPU buffers for vector
+	cudaStatus = cudaMalloc((void**)&dev_mem_copy, N * sizeof(float));
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "cudaMalloc failed!");
+		goto Error;
+	}
+
+	// Copy input vectors from device memory to GPU buffers.
+	cudaStatus = cudaMemcpy(dev_mem_copy, dev_mem, N * sizeof(float), cudaMemcpyDeviceToDevice);
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "cudaMemcpy failed!");
+		goto Error;
+	}
+
+	// Launch a kernel on the GPU with one thread for each element.
+	int numBlocks = log2(N);
+
+	bitonicSortRankKernel128_fp32 << <N / 256, 128 >> >(dev_mem_copy, dev_index);
+	for (int b = 9; b <= numBlocks; b++)
+	{
+		int d = 1 << b;
+		bitonicSortRankKernelXBlock1_fp32 << <N / 512, 256 >> >(dev_mem_copy, dev_index, b);
+		d = d >> 1;
+		while (d >= 2)
+		{
+			bitonicSortRankKernelXBlock2_fp32 << <N / 512, 256 >> >(dev_mem_copy, dev_index, b, d);
+			d = d >> 1;
+		}
+	}
+
+	//bitonicSortKernelTestDbg <<< N / 256, 128 >>> (dev_mem);
+
+	// Check for any errors launching the kernel
+	cudaStatus = cudaGetLastError();
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "bitonicSortKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
+		goto Error;
+	}
+
+	// cudaDeviceSynchronize waits for the kernel to finish, and returns
+	// any errors encountered during the launch.
+	cudaStatus = cudaDeviceSynchronize();
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching addKernel!\n", cudaStatus);
+		goto Error;
+	}
+Error:
+	cudaFree(dev_mem_copy);
+
+	return cudaStatus;
+}
+
+cudaError_t BitonicSort::BitonicSortCUDARankZero(double* dev_mem, unsigned int* dev_index, int N)
+{
+	cudaError_t cudaStatus;
+	double* dev_mem_copy;
+
+	// Allocate GPU buffers for vector
+	cudaStatus = cudaMalloc((void**)&dev_mem_copy, N * sizeof(double));
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "cudaMalloc failed!");
+		goto Error;
+	}
+
+	// Copy input vectors from device memory to GPU buffers.
+	cudaStatus = cudaMemcpy(dev_mem_copy, dev_mem, N * sizeof(double), cudaMemcpyDeviceToDevice);
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "cudaMemcpy failed!");
+		goto Error;
+	}
+
+	// Launch a kernel on the GPU with one thread for each element.
+	int numBlocks = log2(N);
+
+	bitonicSortRankKernel128_fp64 << <N / 256, 128 >> >(dev_mem_copy, dev_index);
+	for (int b = 9; b <= numBlocks; b++)
+	{
+		int d = 1 << b;
+		bitonicSortRankKernelXBlock1_fp64 << <N / 512, 256 >> >(dev_mem_copy, dev_index, b);
+		d = d >> 1;
+		while (d >= 2)
+		{
+			bitonicSortRankKernelXBlock2_fp64 << <N / 512, 256 >> >(dev_mem_copy, dev_index, b, d);
+			d = d >> 1;
+		}
+	}
+
+	//bitonicSortKernelTestDbg <<< N / 256, 128 >>> (dev_mem);
+
+	// Check for any errors launching the kernel
+	cudaStatus = cudaGetLastError();
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "bitonicSortKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
+		goto Error;
+	}
+
+	// cudaDeviceSynchronize waits for the kernel to finish, and returns
+	// any errors encountered during the launch.
+	cudaStatus = cudaDeviceSynchronize();
+	if (cudaStatus != cudaSuccess) {
+		fprintf(stderr, "cudaDeviceSynchronize returned error code %d after launching addKernel!\n", cudaStatus);
+		goto Error;
+	}
+Error:
+	cudaFree(dev_mem_copy);
+
+	return cudaStatus;
+}
