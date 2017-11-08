@@ -8,6 +8,28 @@
 #define TYPE 2
 #define PROF 1
 
+#ifdef _DEBUG
+int main()
+{
+	int N = 131072;
+#if TYPE==1
+	float* mem = new float[N];
+#elif TYPE ==2
+	double* mem = new double[N];
+#else
+	unsigned int* mem = new unsigned int[N];
+#endif
+	unsigned int* index = new unsigned int[N];
+	for (int n = 0; n < N; n++)
+	{
+		mem[n] = rand();
+		index[n] = n;
+	}
+	BitonicSort::BitonicSortRank(mem, index, N);
+	BitonicSort::BitonicSortCUDARank(mem, index, N);
+	return 0;
+}
+#else
 #if PROF == 1
 int main()
 {
@@ -110,4 +132,5 @@ int main()
 	myfile.close();
 	return 0;
 }
+#endif
 #endif
