@@ -6,7 +6,7 @@
 #include <fstream>
 
 #define TYPE 1
-#define PROF 0
+#define PROF 1
 
 #ifdef _DEBUG
 int main()
@@ -39,7 +39,7 @@ int main()
 		fprintf(stderr, "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
 		return 1;
 	}
-	int N = 131072;
+	int N = 4194304;
 #if TYPE==1
 	float* mem = new float[N];
 #elif TYPE ==2

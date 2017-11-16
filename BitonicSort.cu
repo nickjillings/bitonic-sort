@@ -531,6 +531,7 @@ cudaError_t BitonicSort::BitonicSortCUDA(unsigned int* mem, int N)
 {
 	cudaError_t cudaStatus;
 	unsigned int* dev_mem;
+	int numBlocks;
 
 	// Allocate GPU buffers for vector
 	cudaStatus = cudaMalloc((void**)&dev_mem, N * sizeof(unsigned int));
@@ -547,7 +548,7 @@ cudaError_t BitonicSort::BitonicSortCUDA(unsigned int* mem, int N)
 	}
 
 	// Launch a kernel on the GPU with one thread for each element.
-	int numBlocks = log2(N);
+	numBlocks = log2((float)N);
 	
 	bitonicSortKernel128_uint32 <<<N/256, 128 >>>(dev_mem);
 	for (int b = 9; b <= numBlocks; b++)
@@ -595,6 +596,7 @@ cudaError_t BitonicSort::BitonicSortCUDA(float* mem, int N)
 {
 	cudaError_t cudaStatus;
 	float* dev_mem;
+	int numBlocks;
 
 	// Allocate GPU buffers for vector
 	cudaStatus = cudaMalloc((void**)&dev_mem, N * sizeof(float));
@@ -611,7 +613,7 @@ cudaError_t BitonicSort::BitonicSortCUDA(float* mem, int N)
 	}
 
 	// Launch a kernel on the GPU with one thread for each element.
-	int numBlocks = log2(N);
+	numBlocks = log2((float)N);
 
 	bitonicSortKernel128_fp32 <<<N / 256, 128 >> >(dev_mem);
 	for (int b = 9; b <= numBlocks; b++)
@@ -659,6 +661,7 @@ cudaError_t BitonicSort::BitonicSortCUDA(double* mem, int N)
 {
 	cudaError_t cudaStatus;
 	double* dev_mem;
+	int numBlocks;
 
 	// Allocate GPU buffers for vector
 	cudaStatus = cudaMalloc((void**)&dev_mem, N * sizeof(double));
@@ -675,7 +678,7 @@ cudaError_t BitonicSort::BitonicSortCUDA(double* mem, int N)
 	}
 
 	// Launch a kernel on the GPU with one thread for each element.
-	int numBlocks = log2(N);
+	numBlocks = log2((float)N);
 
 	bitonicSortKernel128_fp64 << <N / 256, 128 >> >(dev_mem);
 	for (int b = 9; b <= numBlocks; b++)
@@ -724,6 +727,7 @@ cudaError_t BitonicSort::BitonicSortCUDARank(unsigned int* mem, unsigned int* in
 	cudaError_t cudaStatus;
 	unsigned int* dev_mem;
 	unsigned int* dev_index;
+	int numBlocks;
 
 	// Allocate GPU buffers for vector
 	cudaStatus = cudaMalloc((void**)&dev_mem, N * sizeof(unsigned int));
@@ -745,7 +749,7 @@ cudaError_t BitonicSort::BitonicSortCUDARank(unsigned int* mem, unsigned int* in
 	}
 
 	// Launch a kernel on the GPU with one thread for each element.
-	int numBlocks = log2(N);
+	numBlocks = log2((float)N);
 
 	bitonicSortRankKernel128_uint32 << <N / 256, 128 >> >(dev_mem, dev_index);
 	for (int b = 9; b <= numBlocks; b++)
@@ -795,6 +799,7 @@ cudaError_t BitonicSort::BitonicSortCUDARank(float* mem, unsigned int* index, in
 	cudaError_t cudaStatus;
 	float* dev_mem;
 	unsigned int* dev_index;
+	int numBlocks;
 
 	// Allocate GPU buffers for vector
 	cudaStatus = cudaMalloc((void**)&dev_mem, N * sizeof(float));
@@ -816,7 +821,7 @@ cudaError_t BitonicSort::BitonicSortCUDARank(float* mem, unsigned int* index, in
 	}
 
 	// Launch a kernel on the GPU with one thread for each element.
-	int numBlocks = log2(N);
+	numBlocks = log2((float)N);
 
 	bitonicSortRankKernel128_fp32 << <N / 256, 128 >> >(dev_mem, dev_index);
 	for (int b = 9; b <= numBlocks; b++)
@@ -866,6 +871,7 @@ cudaError_t BitonicSort::BitonicSortCUDARank(double* mem, unsigned int* index, i
 	cudaError_t cudaStatus;
 	double* dev_mem;
 	unsigned int* dev_index;
+	int numBlocks;
 
 	// Allocate GPU buffers for vector
 	cudaStatus = cudaMalloc((void**)&dev_mem, N * sizeof(double));
@@ -887,7 +893,7 @@ cudaError_t BitonicSort::BitonicSortCUDARank(double* mem, unsigned int* index, i
 	}
 
 	// Launch a kernel on the GPU with one thread for each element.
-	int numBlocks = log2(N);
+	numBlocks = log2((float)N);
 
 	bitonicSortRankKernel128_fp64 << <N / 256, 128 >> >(dev_mem, dev_index);
 	for (int b = 9; b <= numBlocks; b++)
@@ -939,7 +945,7 @@ cudaError_t BitonicSort::BitonicSortCUDAZero(unsigned int* dev_mem, int N)
 	cudaError_t cudaStatus;
 
 	// Launch a kernel on the GPU with one thread for each element.
-	int numBlocks = log2(N);
+	int numBlocks = log2((float)N);
 
 	bitonicSortKernel128_uint32 << <N / 256, 128 >> >(dev_mem);
 	for (int b = 9; b <= numBlocks; b++)
@@ -972,7 +978,7 @@ cudaError_t BitonicSort::BitonicSortCUDAZero(float* dev_mem, int N)
 	cudaError_t cudaStatus;
 
 	// Launch a kernel on the GPU with one thread for each element.
-	int numBlocks = log2(N);
+	int numBlocks = log2((float)N);
 
 	bitonicSortKernel128_fp32 << <N / 256, 128 >> >(dev_mem);
 	for (int b = 9; b <= numBlocks; b++)
@@ -1005,7 +1011,7 @@ cudaError_t BitonicSort::BitonicSortCUDAZero(double* dev_mem, int N)
 	cudaError_t cudaStatus;
 
 	// Launch a kernel on the GPU with one thread for each element.
-	int numBlocks = log2(N);
+	int numBlocks = log2((float)N);
 
 	bitonicSortKernel128_fp64 << <N / 256, 128 >> >(dev_mem);
 	for (int b = 9; b <= numBlocks; b++)
@@ -1037,6 +1043,7 @@ cudaError_t BitonicSort::BitonicSortCUDARankZero(unsigned int* dev_mem, unsigned
 {
 	cudaError_t cudaStatus;
 	unsigned int* dev_mem_copy;
+	int numBlocks;
 
 	// Allocate GPU buffers for vector
 	cudaStatus = cudaMalloc((void**)&dev_mem_copy, N * sizeof(unsigned int));
@@ -1053,7 +1060,7 @@ cudaError_t BitonicSort::BitonicSortCUDARankZero(unsigned int* dev_mem, unsigned
 	}
 
 	// Launch a kernel on the GPU with one thread for each element.
-	int numBlocks = log2(N);
+	numBlocks = log2((float)N);
 
 	bitonicSortRankKernel128_uint32 << <N / 256, 128 >> >(dev_mem_copy, dev_index);
 	for (int b = 9; b <= numBlocks; b++)
@@ -1094,6 +1101,7 @@ cudaError_t BitonicSort::BitonicSortCUDARankZero(float* dev_mem, unsigned int* d
 {
 	cudaError_t cudaStatus;
 	float* dev_mem_copy;
+	int numBlocks;
 
 	// Allocate GPU buffers for vector
 	cudaStatus = cudaMalloc((void**)&dev_mem_copy, N * sizeof(float));
@@ -1110,7 +1118,7 @@ cudaError_t BitonicSort::BitonicSortCUDARankZero(float* dev_mem, unsigned int* d
 	}
 
 	// Launch a kernel on the GPU with one thread for each element.
-	int numBlocks = log2(N);
+	numBlocks = log2((float)N);
 
 	bitonicSortRankKernel128_fp32 << <N / 256, 128 >> >(dev_mem_copy, dev_index);
 	for (int b = 9; b <= numBlocks; b++)
@@ -1151,6 +1159,7 @@ cudaError_t BitonicSort::BitonicSortCUDARankZero(double* dev_mem, unsigned int* 
 {
 	cudaError_t cudaStatus;
 	double* dev_mem_copy;
+	int numBlocks;
 
 	// Allocate GPU buffers for vector
 	cudaStatus = cudaMalloc((void**)&dev_mem_copy, N * sizeof(double));
@@ -1167,7 +1176,7 @@ cudaError_t BitonicSort::BitonicSortCUDARankZero(double* dev_mem, unsigned int* 
 	}
 
 	// Launch a kernel on the GPU with one thread for each element.
-	int numBlocks = log2(N);
+	numBlocks = log2((float)N);
 
 	bitonicSortRankKernel128_fp64 << <N / 256, 128 >> >(dev_mem_copy, dev_index);
 	for (int b = 9; b <= numBlocks; b++)
