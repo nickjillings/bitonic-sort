@@ -6,7 +6,7 @@
 #include <fstream>
 
 #define TYPE 1
-#define PROF 1
+#define PROF 0
 
 #ifdef _DEBUG
 int main()
@@ -105,7 +105,7 @@ int main()
 		auto t2 = std::chrono::high_resolution_clock::now();
 		unsigned int count = 0;
 		cudaError_t cudaStatus;
-		while(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() < 5000)
+		while(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() < 1000)
 		{
 			cudaStatus = BitonicSort::BitonicSortCUDA(mem, N);
 			t2 = std::chrono::high_resolution_clock::now();
