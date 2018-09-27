@@ -4,6 +4,7 @@
 #include <chrono>
 #include <iostream>
 #include <fstream>
+#include <string.h>
 
 #define TYPE 1
 #define PROF 0
@@ -113,9 +114,48 @@ int main()
         return 0;
 }
 #else
-int main()
+int main(int argc, char** argv)
 {
 	// Choose which GPU to run on, change this on a multi-GPU system.
+	int start_power = 8;
+	int end_power = 22;
+	int dtype = 0;
+	float seconds = 5;
+	int gpu = 1;
+	int argn = 1;
+	while(argn < argc) {
+		std::cout << argv[argn] << std::endl;
+		if (strcmp(argv[argn], "--start_power") == 0) {
+			sscanf(argv[argn+1], "%i", &start_power);
+			argn+=2;
+		}
+		else if (strcmp(argv[argn], "--end_power") == 0) {
+			sscanf(argv[argn+1], "%i", &end_power);
+			argn+=2;
+		}
+		else if (strcmp(argv[argn], "--data_type") == 0) {
+			if (strcmp(argv[argn+1], "float"))
+				dtype = 1;
+			else if (strcmp(argv[argn+1], "double"))
+				dtype = 2;
+			argn+=2;
+		} else if (strcmp(argv[argn], "--no_gpu") == 0) {
+			gpu = 0;
+			argn ++;
+		} else if (strcmp(argv[argn], "--time") == 0) {
+			sscanf(argv[argn+1], "%f", &seconds);
+			argn += 2;
+		}
+	}
+	std::cout << "Running Bitonic Sort Benchmark Scripts" << std::endl;
+	std::cout << "Starting Size: " << (1<<start_power) << " samples" << std::endl;
+	std::cout << "End Size: " << (1<<end_power) << " samples" << std::endl;
+	std::cout << "Number of seconds: " << seconds << std::endl;
+	if (gpu == 0) {
+		std::cout << " GPU DISABLED!" << std::endl;
+	} else {
+		std::cout << "GPU Enabled" << std::endl;
+	}
 	cudaError_t cudaStatus;
 	cudaStatus = cudaSetDevice(0);
 	if (cudaStatus != cudaSuccess) {
@@ -125,7 +165,7 @@ int main()
 	std::ofstream myfile;
 	myfile.open("example.csv");
 	myfile << "N, GPU, CPU\n";
-	for (int n = 8; n <= 22; n++)
+	for (int n = start_power; n <= end_power; n++)
 	{
 		int N = 1 << n;
 #if TYPE==1
@@ -150,22 +190,25 @@ int main()
 		auto t2 = std::chrono::high_resolution_clock::now();
 		unsigned int count = 0;
 		cudaError_t cudaStatus;
-		while(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() < 30000)
-		{
-			cudaStatus = BitonicSort::BitonicSortCUDA(mem, N);
-			t2 = std::chrono::high_resolution_clock::now();
-			if (cudaStatus != cudaSuccess) {
-				fprintf(stderr, "addWithCuda failed!");
-				return 1;
+		double tGPU = 0;
+		if (gpu != 0) {
+			while(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() < seconds*1000)
+			{
+				cudaStatus = BitonicSort::BitonicSortCUDA(mem, N);
+				t2 = std::chrono::high_resolution_clock::now();
+				if (cudaStatus != cudaSuccess) {
+					fprintf(stderr, "addWithCuda failed!");
+					return 1;
+				}
+				count++;
 			}
-			count++;
+			tGPU = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()/(double)count;
 		}
-		double tGPU = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()/(double)count;
 
 		t1 = std::chrono::high_resolution_clock::now();
 		t2 = std::chrono::high_resolution_clock::now();
 		count = 0;
-		while (std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() < 30000)
+		while (std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() < seconds*1000)
 		{
 			BitonicSort::BitonicSort(mem, N);
 			t2 = std::chrono::high_resolution_clock::now();
